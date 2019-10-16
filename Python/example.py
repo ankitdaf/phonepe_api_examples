@@ -28,12 +28,13 @@ customer_mobile_number = '1234567890'
 salt_key_index = '1'
 new_transaction_id = datetime.datetime.now().strftime("%Y%m%d%H%M%S")  # Setting the current date and time as orderId, for example
 
-response = phonepe_api.make_charge_request(100, new_transaction_id, customer_mobile_number, salt_key_index)
-response_content = json.loads(response.content)
-if response_content['success'] is True:
-    providerReferenceId = json.loads(response.content)['data']['providerReferenceId']
+response = phonepe_api.make_qrinit_request(100, new_transaction_id, salt_key_index)
+#response = phonepe_api.make_charge_request(100, new_transaction_id, customer_mobile_number, salt_key_index)
+#response_content = json.loads(response.content)
+#if response_content['success'] is True:
+#    providerReferenceId = json.loads(response.content)['data']['providerReferenceId']
 
-response = phonepe_api.make_status_request(new_transaction_id, salt_key_index)
+#response = phonepe_api.make_status_request(new_transaction_id, salt_key_index)
 
 #response = phonepe_api.make_cancel_request(new_transaction_id,salt_key_index)
 #response = phonepe_api.make_refund_request(new_transaction_id, providerReferenceId, salt_key_index)
