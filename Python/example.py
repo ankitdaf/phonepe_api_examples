@@ -18,7 +18,7 @@ phonepe_api.STORE_ID = 'test_store'
 phonepe_api.TERMINAL_ID = 'test_terminal'
 
 api_keys = {
-    '1': 'key1,
+    '1': 'key1',
     '2': 'key2'
 }
 
