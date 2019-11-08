@@ -1,5 +1,5 @@
 const endpoints = require("./endpoints");
-const { encodeRequest, signRequest } = require("./helpers");
+const { encodeRequest, signRequest, request } = require("./helpers");
 
 const CHARGE_ENDPOINT = "/v3/charge";
 const QRINIT_ENDPOINT = "/v3/qr/init";
@@ -19,8 +19,7 @@ class Client {
     }
   }
 
-  charge(amount, transaction_id, mobile_number, salt_key_index) {
-    const BASE_URL = endpoints[this.env];
+  charge(amount, transaction_id, mobile_number, apiKeyIndex) {
     const payload = {
       amount: amount, // Amount in paise
       expiresIn: 180,
@@ -34,30 +33,25 @@ class Client {
       message: "Payment for " + transaction_id
     };
 
-    const base64_payload = encodeRequest(payload);
-    const verification =
-      base64_payload + CHARGE_ENDPOINT + this.apiKeys[salt_key_index];
-    const X_VERIFY = signRequest(verification) + "###" + salt_key_index;
+    const base64 = encodeRequest(payload);
+    const sign = base64 + CHARGE_ENDPOINT + this.apiKeys[apiKeyIndex];
+    const X_VERIFY = signRequest(sign) + "###" + apiKeyIndex;
 
-    const url = BASE_URL + CHARGE_ENDPOINT;
-    const data = { request: base64_payload };
-    const headers = {
-      "Content-Type": "application/json",
-      "X-VERIFY": X_VERIFY
-    };
-
-    const response = requests.request(
-      "POST",
-      url,
-      (data = data),
-      (headers = headers)
+    return request(
+      {
+        method: "POST",
+        hostname: endpoints[this.env],
+        path: CHARGE_ENDPOINT,
+        headers: {
+          "Content-Type": "application/json",
+          "X-VERIFY": X_VERIFY
+        }
+      },
+      { request: base64 }
     );
-    console.log(response.status_code, response.text);
-    return response;
   }
 
-  qrcode(amount, transaction_id, salt_key_index) {
-    const BASE_URL = endpoints[this.env];
+  qrcode(amount, transaction_id, apiKeyIndex) {
     const payload = {
       amount: amount, // Amount in paise
       expiresIn: 180,
@@ -69,76 +63,64 @@ class Client {
       message: "Payment for " + transaction_id
     };
 
-    const base64_payload = make_base64(payload);
-    const verification_str =
-      base64_payload + QRINIT_ENDPOINT + this.apiKeys[salt_key_index];
-    const X_VERIFY = make_hash(verification_str) + "###" + salt_key_index;
+    const base64 = make_base64(payload);
+    const sign = base64 + QRINIT_ENDPOINT + this.apiKeys[apiKeyIndex];
+    const X_VERIFY = make_hash(sign) + "###" + apiKeyIndex;
 
-    const url = BASE_URL + QRINIT_ENDPOINT;
-    const data = make_request_body(base64_payload);
-    const headers = {
-      "Content-Type": "application/json",
-      "X-VERIFY": X_VERIFY
-    };
-
-    const response = requests.request(
-      "POST",
-      url,
-      (data = data),
-      (headers = headers)
+    return request(
+      {
+        method: "POST",
+        hostname: endpoints[this.env],
+        path: QRINIT_ENDPOINT,
+        headers: {
+          "Content-Type": "application/json",
+          "X-VERIFY": X_VERIFY
+        }
+      },
+      { request: base64 }
     );
-    console.log(response.status_code, response.text);
-    return response;
   }
 
-  status(transaction_id, salt_key_index) {
-    const BASE_URL = endpoints[this.env];
+  status(transactionId, apiKeyIndex) {
     const endpoint =
       TRANSACTION_ENDPOINT +
       "/" +
       this.merchantId +
       "/" +
-      transaction_id +
+      transactionId +
       "/status";
-    const verification_str = endpoint + this.apiKeys[salt_key_index];
-    const X_VERIFY = make_hash(verification_str) + "###" + salt_key_index;
+    const sign = endpoint + this.apiKeys[apiKeyIndex];
+    const X_VERIFY = make_hash(sign) + "###" + apiKeyIndex;
 
-    const url = BASE_URL + endpoint;
-    const headers = {
-      "Content-Type": "application/json",
-      "X-VERIFY": X_VERIFY
-    };
-
-    const response = requests.request("GET", url, (headers = headers));
-    console.log(response.status_code, response.text);
-    return response;
+    return request({
+      method: "GET",
+      hostname: endpoints[this.env],
+      path: endpoint,
+      headers: {
+        "Content-Type": "application/json",
+        "X-VERIFY": X_VERIFY
+      }
+    });
   }
 
-  cancel(transaction_id, salt_key_index) {
-    const BASE_URL = endpoints[this.env];
+  cancel(transactionId, apiKeyIndex) {
     const endpoint =
-      CHARGE_ENDPOINT +
-      "/" +
-      this.merchantId +
-      "/" +
-      transaction_id +
-      "/cancel";
-    const verification_str = endpoint + this.apiKeys[salt_key_index];
-    const X_VERIFY = make_hash(verification_str) + "###" + salt_key_index;
+      CHARGE_ENDPOINT + "/" + this.merchantId + "/" + transactionId + "/cancel";
+    const sign = endpoint + this.apiKeys[apiKeyIndex];
+    const X_VERIFY = make_hash(sign) + "###" + apiKeyIndex;
 
-    const url = BASE_URL + endpoint;
-    const headers = {
-      "Content-Type": "application/json",
-      "X-VERIFY": X_VERIFY
-    };
-
-    const response = requests.request("POST", url, (headers = headers));
-    console.log(response.status_code, response.text);
-    return response;
+    return request({
+      method: "POST",
+      hostname: endpoints[this.env],
+      path: endpoint,
+      headers: {
+        "Content-Type": "application/json",
+        "X-VERIFY": X_VERIFY
+      }
+    });
   }
 
-  refund(transaction_id, provider_reference_id, salt_key_index) {
-    const BASE_URL = endpoints[this.env];
+  refund(transaction_id, provider_reference_id, apiKeyIndex) {
     const payload = {
       amount: 100,
       merchantId: this.merchantId,
@@ -147,26 +129,22 @@ class Client {
       message: "Refund"
     };
 
-    const base64_payload = make_base64(payload);
-    const verification_str =
-      base64_payload + REFUND_ENDPOINT + this.apiKeys[salt_key_index];
-    const X_VERIFY = make_hash(verification_str) + "###" + salt_key_index;
+    const base64 = make_base64(payload);
+    const sign = base64 + REFUND_ENDPOINT + this.apiKeys[apiKeyIndex];
+    const X_VERIFY = make_hash(sign) + "###" + apiKeyIndex;
 
-    const url = BASE_URL + REFUND_ENDPOINT;
-    const data = make_request_body(base64_payload);
-    const headers = {
-      "Content-Type": "application/json",
-      "X-VERIFY": X_VERIFY
-    };
-
-    const response = requests.request(
-      "POST",
-      url,
-      (data = data),
-      (headers = headers)
+    return request(
+      {
+        method: "POST",
+        hostname: endpoints[this.env],
+        path: REFUND_ENDPOINT,
+        headers: {
+          "Content-Type": "application/json",
+          "X-VERIFY": X_VERIFY
+        }
+      },
+      { request: base64_payload }
     );
-    console.log(response.status_code, response.text);
-    return response;
   }
 }
 
