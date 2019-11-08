@@ -19,18 +19,18 @@ class Client {
     }
   }
 
-  charge(amount, transaction_id, mobile_number, apiKeyIndex) {
+  charge(amount, transactionId, mobile, apiKeyIndex) {
     const payload = {
       amount: amount, // Amount in paise
       expiresIn: 180,
-      instrumentReference: mobile_number,
+      instrumentReference: mobile,
       instrumentType: "MOBILE",
       merchantId: this.merchantId,
-      merchantOrderId: transaction_id,
+      merchantOrderId: transactionId,
       storeId: this.storeId,
       terminalId: this.terminalId,
-      transactionId: transaction_id,
-      message: "Payment for " + transaction_id
+      transactionId: transactionId,
+      message: "Payment for " + transactionId
     };
 
     const base64 = encodeRequest(payload);
@@ -51,16 +51,16 @@ class Client {
     );
   }
 
-  qrcode(amount, transaction_id, apiKeyIndex) {
+  qrcode(amount, transactionId, apiKeyIndex) {
     const payload = {
       amount: amount, // Amount in paise
       expiresIn: 180,
       merchantId: this.merchantId,
-      merchantOrderId: transaction_id,
+      merchantOrderId: transactionId,
       storeId: this.storeId,
       terminalId: this.terminalId,
-      transactionId: transaction_id,
-      message: "Payment for " + transaction_id
+      transactionId: transactionId,
+      message: "Payment for " + transactionId
     };
 
     const base64 = make_base64(payload);
@@ -120,12 +120,12 @@ class Client {
     });
   }
 
-  refund(transaction_id, provider_reference_id, apiKeyIndex) {
+  refund(transactionId, providerReferenceId, apiKeyIndex) {
     const payload = {
       amount: 100,
       merchantId: this.merchantId,
-      providerReferenceId: provider_reference_id,
-      transactionId: transaction_id + "_refund",
+      providerReferenceId: providerReferenceId,
+      transactionId: transactionId + "_refund",
       message: "Refund"
     };
 
