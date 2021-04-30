@@ -4,4 +4,4 @@ idna==2.8
 pip==19.0.3
 requests==2.22.0
 setuptools==40.8.0
-urllib3==1.25.5
+urllib3==1.25.8
